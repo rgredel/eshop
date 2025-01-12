@@ -1,5 +1,5 @@
-# Use an official OpenJDK runtime as a parent image
-FROM openjdk:17-jdk-slim
+# First stage: Build the application
+FROM openjdk:17-jdk-slim AS build
 
 # Set the working directory in the container
 WORKDIR /app
@@ -19,8 +19,14 @@ RUN chmod +x gradlew
 # Build the application
 RUN ./gradlew build
 
-# Copy the built jar file to the working directory
-COPY build/libs/eshop-SNAPSHOT.jar app.jar
+# Second stage: Create the runtime image
+FROM openjdk:17-jdk-slim
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Copy the built jar file from the build stage
+COPY --from=build /app/build/libs/*.jar app.jar
 
 # Expose the port the application runs on
 EXPOSE 8080
